@@ -1,0 +1,134 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-3.8.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+    <changeSet author="amussina (generated)" id="1586152581892-1">
+        <createTable tableName="telegram_chat">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="telegram_chat_pkey"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="title" type="VARCHAR(255)"/>
+            <column name="date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="is_channel" type="BOOLEAN"/>
+            <column name="country_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-2">
+        <createSequence sequenceName="country_id_seq"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-3">
+        <createTable tableName="telegram_message">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="telegram_message_pkey"/>
+            </column>
+            <column name="date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="message" type="VARCHAR(4000)"/>
+            <column name="message_id" type="BIGINT"/>
+            <column name="telegram_chat_id" type="BIGINT"/>
+            <column name="telegram_user_id" type="BIGINT"/>
+            <column defaultValueBoolean="false" name="deleted" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deletion_date" type="TIMESTAMP WITHOUT TIME ZONE"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-4">
+        <createSequence sequenceName="nlp_token_id_seq"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-6">
+        <createTable tableName="telegram_user">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="telegram_user_pkey"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)"/>
+            <column name="last_name" type="VARCHAR(255)"/>
+            <column name="user_name" type="VARCHAR(255)"/>
+            <column name="phone_number" type="VARCHAR(255)"/>
+            <column name="lang_code" type="VARCHAR(255)"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="country_id" type="BIGINT"/>
+            <column name="gender" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-7">
+        <createTable tableName="country">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="country_pkey"/>
+            </column>
+            <column name="code" type="VARCHAR(255)"/>
+            <column name="name" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-8">
+        <createSequence sequenceName="telegram_message_id_seq"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-9">
+        <createTable tableName="nlp_user_token">
+            <column name="telegram_user_id" type="BIGINT"/>
+            <column name="nlp_token_id" type="BIGINT"/>
+            <column name="count" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-10">
+        <createTable tableName="nlp_chat_token">
+            <column name="telegram_chat_id" type="BIGINT"/>
+            <column name="nlp_token_id" type="BIGINT"/>
+            <column name="count" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-11">
+        <createTable tableName="nlp_token">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="nlp_token_pkey"/>
+            </column>
+            <column name="token" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-12">
+        <addForeignKeyConstraint baseColumnNames="telegram_chat_id" baseTableName="telegram_message" constraintName="fk1c1qdglacb3ytruom4147q59r" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="telegram_chat" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-14">
+        <createIndex indexName="telegram_message_message_id_user_id_chat_id_unique" tableName="telegram_message" unique="true">
+            <column name="message_id"/>
+            <column name="telegram_chat_id"/>
+            <column name="telegram_user_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-16">
+        <addForeignKeyConstraint baseColumnNames="country_id" baseTableName="telegram_chat" constraintName="telegram_chat_country_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="country" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-17">
+        <addForeignKeyConstraint baseColumnNames="country_id" baseTableName="telegram_user" constraintName="telegram_user_country_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="country" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-18">
+        <createIndex indexName="nlp_user_token_user_and_token_unique" tableName="nlp_user_token" unique="true">
+            <column name="telegram_user_id"/>
+            <column name="nlp_token_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-19">
+        <addForeignKeyConstraint baseColumnNames="telegram_user_id" baseTableName="nlp_user_token" constraintName="nlp_user_token_user_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="telegram_user" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-20">
+        <createIndex indexName="nlp_chat_token_chat_and_token_unique" tableName="nlp_chat_token" unique="true">
+            <column name="telegram_chat_id"/>
+            <column name="nlp_token_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-21">
+        <addForeignKeyConstraint baseColumnNames="telegram_chat_id" baseTableName="nlp_chat_token" constraintName="nlp_chat_token_chat_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="telegram_chat" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-22">
+        <addForeignKeyConstraint baseColumnNames="nlp_token_id" baseTableName="nlp_user_token" constraintName="nlp_user_token_token_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="nlp_token" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-23">
+        <addForeignKeyConstraint baseColumnNames="telegram_user_id" baseTableName="telegram_message" constraintName="fkmvywmp07f8r2gru8c5lg51cy4" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="telegram_user" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-24">
+        <addForeignKeyConstraint baseColumnNames="nlp_token_id" baseTableName="nlp_chat_token" constraintName="nlp_chat_token_token_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="nlp_token" validate="true"/>
+    </changeSet>
+    <changeSet author="amussina (generated)" id="1586152581892-25">
+        <sql>
+            CREATE UNIQUE INDEX IF NOT EXISTS telegram_message_message_id_chat_id_unique ON public.telegram_message USING btree (message_id, telegram_chat_id) WHERE (telegram_user_id IS NULL);
+        </sql>
+    </changeSet>
+</databaseChangeLog>

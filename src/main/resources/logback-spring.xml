@@ -1,0 +1,55 @@
+<configuration>
+    <jmxConfigurator/>
+
+    <!--default params are for graylog in alpha-->
+    <springProperty scope="context" name="graylog.host" source="graylog.host" defaultValue="udp:192.168.1.167"/>
+    <springProperty scope="context" name="graylog.port" source="graylog.port" defaultValue="12201"/>
+    <springProperty scope="context" name="graylog.facility" source="graylog.facility"
+                    defaultValue="crawler-telegram-localtest"/>
+    <springProperty scope="context" name="graylog.fn1" source="graylog.fn1" defaultValue="fn1"/>
+    <springProperty scope="context" name="graylog.fv1" source="graylog.fv1" defaultValue="fv1"/>
+
+    <appender name="graylog" class="biz.paluch.logging.gelf.logback.GelfLogbackAppender">
+        <host>${graylog.host}</host>
+        <port>${graylog.port}</port>
+        <version>1.1</version>
+        <facility>${graylog.facility}</facility>
+        <extractStackTrace>true</extractStackTrace>
+        <filterStackTrace>true</filterStackTrace>
+        <!--<mdcProfiling>true</mdcProfiling>-->
+        <timestampPattern>yyyy-MM-dd HH:mm:ss.SSS</timestampPattern>
+        <maximumMessageSize>8192</maximumMessageSize>
+
+        <!-- static fields -->
+        <additionalFields>${graylog.fn1}=${graylog.fv1}</additionalFields>
+        <!-- Optional: Specify field types -->
+        <additionalFieldTypes>${graylog.fn1}=String</additionalFieldTypes>
+
+        <!-- fields using MDC -->
+        <!--<mdcFields>mdcField1,mdcField2</mdcFields>-->
+        <!--<dynamicMdcFields>mdc.*,(mdc|MDC)fields</dynamicMdcFields>-->
+        <includeFullMdc>true</includeFullMdc>
+
+        <!--this will override any configuration; it wont log anything that is below INFO level-->
+        <!--<filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+        <!--<level>INFO</level>-->
+        <!--</filter>-->
+    </appender>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!--# Устанавливаем кодировку UTF-8 для корректного отображения-->
+            <charset>utf-8</charset>
+            <!--# через %X[] вызываем параметр из MDC-->
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss}  %magenta([%thread]) %highlight(%-5level) [%logger{36}] [%X{api.host}:%X{api.port}]
+    ChatId=[%boldYellow(%X{chat_id})] MessageId=[%boldYellow(%X{message_id})] UserId=[%boldYellow(%X{user_id})] : %boldCyan(%msg%n)
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="graylog"/>
+        <appender-ref ref="console"/>
+    </root>
+</configuration>

@@ -1,0 +1,27 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="amussina" id="1628419805806-1">
+        <addColumn tableName="telegram_chat">
+            <column name="description" type="text"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="amussina" id="1628419805806-2">
+        <addColumn tableName="telegram_chat">
+            <column name="is_deleted" value="false" type="BOOLEAN"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="amussina" id="1628419805806-3">
+        <addColumn tableName="telegram_chat">
+            <column name="is_active" value="true" type="BOOLEAN"/>
+        </addColumn>
+    </changeSet>
+    <changeSet author="amussina" id="1628419805806-4">
+        <addNotNullConstraint tableName="telegram_chat" columnName="is_deleted"/>
+        <addNotNullConstraint tableName="telegram_chat" columnName="is_active"/>
+    </changeSet>
+    <changeSet author="amussina" id="1628419805806-5">
+        <addColumn tableName="telegram_chat">
+            <column name="member_count" type="BIGINT"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

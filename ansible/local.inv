@@ -1,0 +1,9 @@
+[crawler-telegram:children]
+  docker
+
+  [docker]
+  docker-01 ansible_host=127.0.0.1
+
+  [crawler-telegram:vars]
+  ansible_become=no
+  ansible_connection=local

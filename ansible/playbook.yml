@@ -1,0 +1,7 @@
+---
+
+- name: Local playbook
+  hosts: "docker"
+  roles:
+    - create-folders-and-copy-configs
+

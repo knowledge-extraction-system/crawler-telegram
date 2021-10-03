@@ -1,0 +1,135 @@
+stages:
+  - test
+  - copy-config
+  - compile-run-migrations
+  - deploy
+
+variables:
+  JIRA_PROJECT_NAME: "KES"
+  PROJECT_NAME: "CRAWLER-TELEGRAM"
+  STACK_NAME: "knowledge-extraction-system"
+  IMAGE_NAME: "crawler-telegram"
+  # This will supress any download for dependencies and plugins or upload messages which would clutter the console log.
+  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
+  MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+  RESULT_IMAGE_NAME: "kes/crawler-telegram"
+
+# Cache downloaded dependencies and plugins between builds.
+# To keep cache across branches add 'key: "$CI_JOB_NAME"'
+cache:
+  paths:
+    - .m2/repository
+
+# Это называется YAML anchor. Ну или gitlab-ci.yml anchor
+# Позволяет избежать дублирования настроек, что-то вроде наследования
+.branches_template: &branches_template
+  before_script:
+    # randomly clean caches every 7-th build
+    - if [ $[ $RANDOM % 7 ] == 0 ]; then rm -rf "$CI_PROJECT_DIR/.m2/repository/*" && echo 'Cleaning mvn cache!!!'; fi
+    - ENVIRONMENT=$(echo "$CI_COMMIT_REF_NAME" | tr a-z A-Z)
+    - ENVIRONMENT_LOWERCASE=$(echo "$ENVIRONMENT" | tr A-Z a-z)
+  only:
+    - alpha
+    - beta
+    - prod
+  tags:
+    - ansible
+  allow_failure: false
+
+.migrations_template: &migrations_template
+  when: manual
+  stage: compile-run-migrations
+  script:
+    - mvn clean install -DfinalName=${IMAGE_NAME} -P !artifactory,!checkstyle,$ENVIRONMENT_LOWERCASE -B -s .mvn/wrapper/settings.xml -DskipTests
+    - mvn liquibase:updateSQL -Dliquibase.properties="$(pwd)/config/liquibase-${ENVIRONMENT_LOWERCASE}.properties"
+    - mvn liquibase:update -Dliquibase.properties="$(pwd)/config/liquibase-${ENVIRONMENT_LOWERCASE}.properties"
+  artifacts:
+    paths:
+      - target/${IMAGE_NAME}.jar
+    expire_in: 7 days
+
+# Это называется YAML anchor. Ну или gitlab-ci.yml anchor
+# Позволяет избежать дублирования настроек, что-то вроде наследования
+.deploy_template: &deploy_template
+  stage: deploy
+  script:
+    - export TAG=$(git describe)
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -t "127.0.0.1:5000/${STACK_NAME}/${IMAGE_NAME}:$TAG" --build-arg IMAGE_NAME -f docker/Dockerfile .
+    - docker push "127.0.0.1:5000/${STACK_NAME}/${IMAGE_NAME}:$TAG"
+    - sed -i "s/┬─┬ノ( º _ ºノ)/${IMAGE_NAME}/g" docker/docker-compose-${ENVIRONMENT_LOWERCASE}.yml #dont touch!
+    - docker stack deploy --compose-file=docker/docker-compose-${ENVIRONMENT_LOWERCASE}.yml ${STACK_NAME}
+
+test-code:
+  stage: test
+  image: maven:3.6.0-jdk-8
+  script:
+    - bash mvnw clean install -DfinalName=${IMAGE_NAME} -B --errors --fail-at-end --show-version -s .mvn/wrapper/settings.xml -DskipTests
+  when: always
+  allow_failure: false
+  except:
+    - alpha
+    - beta
+    - prod
+    - staging
+    - master
+  tags:
+    - srv-inno-build
+
+copy_config_beta:
+  <<: *branches_template
+  stage: copy-config
+  script:
+    - mkdir config
+    - cp src/main/resources/lib/libtdjni.so config/
+    - ansible-playbook ansible/playbook.yml -i ansible/local.inv  --extra-vars "project_env=${ENVIRONMENT_LOWERCASE} working_dir=$(pwd)" --vault-password-file /config/.vault_password
+  when: on_success
+  artifacts:
+    paths:
+      - config
+  only:
+    - beta
+  tags:
+    - beta
+    - dissgram
+    - deploy
+
+run-migrations_beta:
+  image: maven:3.6.0-jdk-8
+  <<: *branches_template
+  <<: *migrations_template
+  when: always
+  only:
+    - beta
+  tags:
+    - docker
+    - liquibase
+    - beta
+
+deploy_beta:
+  <<: *branches_template
+  <<: *deploy_template
+  when: on_success
+  environment:
+    name: beta
+  only:
+    - beta
+  tags:
+    - beta
+    - dissgram
+    - deploy
+
+deploy_prod:
+  <<: *branches_template
+  <<: *deploy_template
+  when: manual
+  environment:
+    name: prod
+  only:
+    - prod
+  tags:
+    - prod
+    - dissgram
+    - deploy
+    - node01

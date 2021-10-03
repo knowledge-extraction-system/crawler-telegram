@@ -1,0 +1,9 @@
+[crawler-telegram:children]
+  docker
+
+  [docker]
+  docker-01 ansible_host=10.80.11.5
+
+  [crawler-telegram:vars]
+  ansible_become=yes
+  project_env=alpha
